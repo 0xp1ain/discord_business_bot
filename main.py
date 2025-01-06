@@ -52,6 +52,23 @@ async def break_start(interaction: discord.Interaction):
     else:
         await interaction.response.send_message("휴식을 시작할 수 없습니다!", ephemeral=True)
 
+@bot.tree.command(name="현재", description="현재 출근중인 사용자를 확인합니다")
+async def current_working_users(interaction: discord.Interaction):
+    working_users = bot.db.get_current_working_users()
+    guild_members = interaction.guild.members
+    working_users = [
+        member.display_name
+        for member in guild_members
+        if str(member.id) in working_users
+    ]
+    if working_users:
+        await interaction.response.send_message(
+            "출근 중인 사용자:\n" + "\n".join(working_users),
+            ephemeral=True
+        )
+    else:
+        await interaction.response.send_message("출근 중인 사용자가 없습니다.", ephemeral=True)
+
 @bot.tree.command(name="해제", description="휴식을 종료합니다")
 async def break_end(interaction: discord.Interaction):
     if bot.db.end_break(str(interaction.user.id)):
@@ -285,5 +302,4 @@ async def end_meeting(interaction: discord.Interaction, meeting_title: str = Non
 bot.tree.add_command(meeting_group)
 
 token = os.environ["TOKEN"]
-
 bot.run(token)
