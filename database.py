@@ -288,6 +288,15 @@ class Database:
                 "daily_hours": round(daily_hours, 2),
                 "weekly_hours": weekly_hours
             }
+    def get_current_working_users(self) -> List[str]:
+        with sqlite3.connect(self.db_file) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT user_id
+                FROM work_records
+                WHERE end_time IS NULL
+            """)
+            return [row[0] for row in cursor.fetchall()]
 
     def _get_week_number(self, date: datetime.date) -> int:
         return date.isocalendar()[1]
