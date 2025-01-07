@@ -1,5 +1,6 @@
 import sqlite3
 import datetime
+from zoneinfo import ZoneInfo
 from typing import List, Dict, Optional, Tuple
 
 class Database:
@@ -101,7 +102,7 @@ class Database:
                 
             with sqlite3.connect(self.db_file) as conn:
                 cursor = conn.cursor()
-                now = datetime.datetime.now()
+                now = datetime.datetime.now(ZoneInfo("Asia/Seoul"))
                 date = now.date()
                 week_number = self._get_week_number(date)
                 
@@ -126,7 +127,7 @@ class Database:
 
         with sqlite3.connect(self.db_file) as conn:
             cursor = conn.cursor()
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(ZoneInfo("Asia/Seoul"))
             
             # 퇴근 처리
             cursor.execute("""
@@ -156,7 +157,7 @@ class Database:
             
         with sqlite3.connect(self.db_file) as conn:
             cursor = conn.cursor()
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(ZoneInfo("Asia/Seoul"))
             
             # 현재 근무 상태를 WORKING에서 ON BREAK로 변경하기
             cursor.execute("""
@@ -180,7 +181,7 @@ class Database:
             
         with sqlite3.connect(self.db_file) as conn:
             cursor = conn.cursor()
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(ZoneInfo("Asia/Seoul"))
             
             # 현재 근무 상태 확인
             work_record = self.get_active_work_record(user_id)
@@ -253,7 +254,7 @@ class Database:
     def get_work_summary(self, user_id: str) -> Dict:
         with sqlite3.connect(self.db_file) as conn:
             cursor = conn.cursor()
-            today = datetime.datetime.now().date()
+            today = datetime.datetime.now(ZoneInfo("Asia/Seoul")).date()
             week_number = self._get_week_number(today)
             
             # Get today's completed work records
@@ -276,7 +277,7 @@ class Database:
             active_work = self.get_active_work_record(user_id)
             if active_work:
                 start_dt = datetime.datetime.fromisoformat(active_work[1])
-                current_dt = datetime.datetime.now()
+                current_dt = datetime.datetime.now(ZoneInfo("Asia/Seoul"))
                 active_hours = self._calculate_work_hours_excluding_breaks(
                     start_dt, current_dt, user_id, active_work[0]
                 )

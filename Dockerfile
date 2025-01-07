@@ -5,8 +5,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENV TOKEN=discord_bot_token <-- discord bot token here
+ENV TOKEN=your_token_here
 
 COPY database.py main.py ./
+VOLUME /app/db
 
 CMD ["python", "main.py"]

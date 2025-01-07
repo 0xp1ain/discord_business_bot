@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+    volumes:
+      - sqlite_data:/app/db
+    ports:
+      - "8000:8000"
+
+volumes:
+  sqlite_data:

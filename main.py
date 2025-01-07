@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 import datetime
 from database import Database
+from zoneinfo import ZoneInfo
 from typing import List, Dict
 import asyncio
 import os
@@ -29,7 +30,7 @@ async def on_ready():
 async def clock_in(interaction: discord.Interaction):
     if bot.db.clock_in(str(interaction.user.id)):
         await interaction.response.send_message(
-            f"{interaction.user.display_name}님, 출근이 기록되었습니다. 현재 시간: {datetime.datetime.now()}",
+            f"{interaction.user.display_name}님, 출근이 기록되었습니다. 현재 시간: {datetime.datetime.now(ZoneInfo('Asia/Seoul'))}",
             ephemeral=True
         )
     else:
@@ -39,7 +40,7 @@ async def clock_in(interaction: discord.Interaction):
 async def clock_out(interaction: discord.Interaction):
     if bot.db.clock_out(str(interaction.user.id)):
         await interaction.response.send_message(
-            f"{interaction.user.display_name}님, 퇴근이 기록되었습니다. 현재 시간: {datetime.datetime.now()}",
+            f"{interaction.user.display_name}님, 퇴근이 기록되었습니다. 현재 시간: {datetime.datetime.now(ZoneInfo('Asia/Seoul'))}",
             ephemeral=True
         )
     else:
@@ -89,10 +90,6 @@ async def set_admin(interaction: discord.Interaction, role: discord.Role):
 
 @bot.tree.command(name="결과", description="근무 시간을 확인합니다")
 async def view_results(interaction: discord.Interaction):
-    if not any(role.id in bot.db.get_admin_roles() for role in interaction.user.roles):
-        await interaction.response.send_message("권한이 없습니다!", ephemeral=True)
-        return
-
     guild_members = interaction.guild.members
     results = []
     
@@ -101,12 +98,12 @@ async def view_results(interaction: discord.Interaction):
             continue
             
         summary = bot.db.get_work_summary(str(member.id))
-        if summary["daily_hours"] > 0 or summary["weekly_hours"] > 0:
-            results.append(
-                f"{member.display_name}:\n"
-                f"- 오늘: {summary['daily_hours']:.2f}시간\n"
-                f"- 이번 주 누적: {summary['weekly_hours']:.2f}시간"
-            )
+
+        results.append(
+            f"{member.display_name}:\n"
+            f"- 오늘: {summary['daily_hours']:.2f}시간\n"
+            f"- 이번 주 누적: {summary['weekly_hours']:.2f}시간"
+        )
 
     if not results:
         await interaction.response.send_message("표시할 근무 기록이 없습니다.", ephemeral=True)
@@ -152,8 +149,8 @@ async def set_meeting_time(interaction: discord.Interaction, time: str):
     md, hm = time.split()
     month, day = map(int, md.split('/'))
     hour, minute = map(int, hm.split(':'))
-    year = datetime.datetime.now().year
-    if datetime.datetime.now().month > month:
+    year = datetime.datetime.now(ZoneInfo("Asia/Seoul")).year
+    if datetime.datetime.now(ZoneInfo("Asia/Seoul")).month > month:
         year += 1
     meeting_dt = datetime.datetime(year, month, day, hour, minute)
     meeting_str = meeting_dt.strftime('%Y년 %m월 %d일 %H시 %M분')
@@ -243,9 +240,9 @@ async def setup_meeting(interaction: discord.Interaction):
     month, day = map(int, md.split('/'))
     hour, minute = map(int, hm.split(':'))
 
-    year = datetime.datetime.now().year
+    year = datetime.datetime.now(ZoneInfo("Asia/Seoul")).year
     # 만약 이번 달보다 이전인 경우 내년으로 설정
-    if datetime.datetime.now().month > month:
+    if datetime.datetime.now(ZoneInfo("Asia/Seoul")).month > month:
         year += 1
     meeting_dt = datetime.datetime(year, month, day, hour, minute)
     meeting_str = meeting_dt.strftime('%Y년 %m월 %d일 %H시 %M분')
@@ -256,7 +253,7 @@ async def setup_meeting(interaction: discord.Interaction):
     )
 
     # 10분 리마인더
-    time_until_start = (meeting_dt - datetime.datetime.now()).total_seconds()
+    time_until_start = (meeting_dt - datetime.datetime.now(ZoneInfo("Asia/Seoul"))).total_seconds()
     if time_until_start > 600:
         async def remind():
             await asyncio.sleep(time_until_start - 600)
